@@ -31,6 +31,9 @@ class EnteringQueueTest {
             Customer{id=99, name='NHN아카데미99', money=1000000}
             1~99 고객을 생성 후 enteringQueue 대기열에 등록 합니다.
          */
+        for(long i=1; i<=99; i++){
+            enteringQueue.addCustomer(new Customer(i, "NHN아카데미"+i , 100_0000));
+        }
 
     }
 
@@ -45,14 +48,16 @@ class EnteringQueueTest {
     void addCustomer() throws Exception {
         //TODO#3-10 id=100인 고객을 enteringQueue에 등록하고 검증 합니다.
         Customer customer = new Customer(100l, "NHN아카데미100",100_0000);
-
+        enteringQueue.addCustomer(customer);
+        Assertions.assertEquals(100, enteringQueue.getQueueSize());
     }
 
     @Test
     @DisplayName("queue - poll test")
     void getCustomer() {
         //TODO#3-11  enteringQueue에서 enteringQueue.getCustomer() 호출시 반환되는 값을 검증 합니다.
-
+        Customer customer = enteringQueue.getCustomer();
+        Assertions.assertEquals(customer, new Customer(1, "NHN아카데미1", 100_0000));
     }
 
     @Test
@@ -72,11 +77,26 @@ class EnteringQueueTest {
         producer.start();
 
         //TODO#3-12 2초 대기후 enteringQueue.getCustomer() 호출해서 소비할 수 있도록 consumer Thread를 구현 합니다.
-        Thread consumer = null;
+        Thread consumer = new Thread(new Runnable() {
+            @Override
+            public void run() {
 
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                enteringQueue.getCustomer();
+
+            }
+        });
+        consumer.start();
 
         //TODO#3-13  producer or consumer 실행 중이라면 대기 합니다. yield()를 이용해서 구현하세요.
-
+        do{
+            Thread.yield();
+        }while(producer.isAlive() || consumer.isAlive());
 
         int actual = enteringQueue.getQueueSize();
         Assertions.assertEquals(100,actual);
