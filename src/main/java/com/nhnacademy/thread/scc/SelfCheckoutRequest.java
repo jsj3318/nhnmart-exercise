@@ -32,12 +32,14 @@ public class SelfCheckoutRequest implements Executable {
 
     public SelfCheckoutRequest(Customer customer, Cart cart, ProductService productService) {
         //TODO#9-2-1 customer, cart, productService null 이면 IllegalArgumentException 발생
-
+        if(customer == null || cart == null || productService == null){
+            throw new IllegalArgumentException();
+        }
 
         //TODO#9-2-2 customer, cart, productService 초기화
-        this.customer = null;
-        this.cart = null;
-        this.productService = null;
+        this.customer = customer;
+        this.cart = cart;
+        this.productService = productService;
     }
 
     @Override
@@ -49,11 +51,19 @@ public class SelfCheckoutRequest implements Executable {
            - 결제할 총 금액이 < customer.money 이면 모든 제품을 반납 합니다. productService.returnProduct() 이용해서 구현 합니다.
         */
 
-
+        try {
+            customer.pay(getTotalAmountFromCart());
+        } catch (InsufficientFundsException e) {
+            // 결제할 금액이 잔액 초과함
+            for(CartItem item : cart.getCartItems()){
+                productService.returnProduct(item.getProductId(), item.getQuantity());
+            }
+        }
 
         try {
             //1초 단위로 결제를 진행 합니다.
             Thread.sleep(1000);
+
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -65,7 +75,7 @@ public class SelfCheckoutRequest implements Executable {
         int totalPrice = 0;
 
         for(CartItem cartItem : cart.getCartItems()){
-
+            totalPrice += productService.getProduct(cartItem.getProductId()).getPrice();
         }
         return totalPrice;
     }
