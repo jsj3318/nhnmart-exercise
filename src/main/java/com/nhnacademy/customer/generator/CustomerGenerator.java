@@ -60,7 +60,7 @@ public class CustomerGenerator implements Runnable {
 
                 Customer customer = generate();
                 enteringQueue.addCustomer(customer);
-                log.debug("generate-customer:{}",customer);
+                log.debug("손님 입장함:{}",customer);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
