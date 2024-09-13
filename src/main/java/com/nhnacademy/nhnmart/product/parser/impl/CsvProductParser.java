@@ -22,8 +22,10 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,12 +40,15 @@ public class CsvProductParser implements ProductParser {
 
     public CsvProductParser() {
         //TODO#6-2-1 기본생성자 구현 , getProductsStream()을 이용해서 inputStream을 초기화 합니다.
-        inputStream = null;
+        inputStream = getProductsStream();
     }
 
     public CsvProductParser(InputStream inputStream){
         //TODO#6-2-2 inputStream prameter로 전달 됩니다. 초기화 합니다.
-        this.inputStream = null;
+        if(inputStream == null){
+            throw new IllegalArgumentException();
+        }
+        this.inputStream = inputStream;
     }
 
     @Override
@@ -55,6 +60,29 @@ public class CsvProductParser implements ProductParser {
          */
         List<Product> products = new ArrayList<>();
 
+        try( BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream)) ){
+            CSVParser parser = CSVParser.parse(reader, CSVFormat.EXCEL);
+            List<CSVRecord> csvRecords = parser.getRecords();
+            for(int i = 1; i < csvRecords.size(); i++){
+                CSVRecord csvRecord = csvRecords.get(i);
+
+                long id = ProductIdGenerator.getNewId();
+                String item = csvRecord.get(0);
+                String maker = csvRecord.get(1);
+                String specification = csvRecord.get(2);
+                String unit = csvRecord.get(3);
+                int price = Integer.parseInt(csvRecord.get(4).replaceAll("[\",]", ""));
+                int quantity = 100;
+
+                products.add(new Product(id, item, maker, specification, unit, price, quantity));
+            }
+
+        }catch (Exception e){
+            throw new CsvParsingException();
+        }
+
+
+
 
         return products;
     }
@@ -62,6 +90,8 @@ public class CsvProductParser implements ProductParser {
     @Override
     public void close() throws IOException {
         //TODO#6-2-5 inputStream 객체가 존재하면 close() method를 호출해서 자원을 해지 합니다.
-        
+        if(inputStream != null){
+            inputStream.close();
+        }
     }
 }

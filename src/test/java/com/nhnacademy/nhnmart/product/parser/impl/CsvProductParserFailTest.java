@@ -39,5 +39,11 @@ public class CsvProductParserFailTest {
             }
         */
 
+        CsvProductParser parser = new CsvProductParser(this.getClass()
+                .getClassLoader()
+                .getResourceAsStream("product_data_fail.csv"));
+
+        Assertions.assertThrows(CsvParsingException.class, parser::parse);
+
     }
 }
